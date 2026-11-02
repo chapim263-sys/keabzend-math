@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Keabzend Math — Grade 10</title>
+<style>
+/* ===== THEME TOKENS ===== */
+:root{
+  --bg:#0a0e17; --bg2:#0d1220; --glass:rgba(255,255,255,.04); --glassb:rgba(255,255,255,.08);
+  --surface:#131a2b; --surface2:#1b2438; --border:#263252;
+  --text:#eef1fa; --muted:#8a94b0; --accent:#8b5cf6; --accent2:#34d6b0; --accent3:#60a5fa;
+  --danger:#ff6b6b; --warn:#ffb84f;
+  --grad1:linear-gradient(135deg,#8b5cf6,#60a5fa); --grad2:linear-gradient(135deg,#34d6b0,#60a5fa);
+}
+:root[data-theme="light"]{
+  --bg:#f3f4fb; --bg2:#eceef9; --glass:rgba(255,255,255,.6); --glassb:rgba(20,20,40,.08);
+  --surface:#ffffff; --surface2:#f3f4fb; --border:#e1e4f3;
+  --text:#191c2e; --muted:#656c8a;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0;font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+  min-height:100%;transition:background .3s,color .3s;
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:80;}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:9px}
+
+/* ===== LAYOUT ===== */
+.shell{display:flex;min-height:100vh}
+.sidebar{
+  width:230px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
+  padding:18px 12px;position:sticky;top:0;height:100vh;overflow-y:auto;
+  padding-top:calc(18px + env(safe-area-inset-top,0px));
+}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 20px}
+.brand .logo{width:38px;height:38px;border-radius:11px;background:var(--grad1);display:flex;align-items:center;justify-content:center;font-size:1.2rem}
+.brand b{font-size:1.05rem}
+.brand small{display:block;color:var(--muted);font-size:.68rem}
+.navitem{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:11px;color:var(--muted);
+  cursor:pointer;font-size:.87rem;margin-bottom:3px;transition:.15s;border:1px solid transparent}
+.navitem:hover{background:var(--glass)}
+.navitem.active{background:var(--glass);border-color:var(--glassb);color:var(--text);font-weight:600}
+.navitem .ic{width:18px;text-align:center}
+
+.main{flex:1;min-width:0;padding:20px 18px 70px}
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.topbar h2{margin:0;font-size:1.3rem;flex:1}
+.iconbtn{background:var(--surface);border:1px solid var(--border);color:var(--text);width:38px;height:38px;
+  border-radius:11px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center}
+.navtoggle{display:none}
+
+/* ===== CARDS / GLASS ===== */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:16px}
+.glasscard{background:var(--glass);backdrop-filter:blur(14px);border:1px solid var(--glassb);border-radius:16px;padding:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px}
+.stat .num{font-size:1.5rem;font-weight:800;background:var(--grad1);-webkit-background-clip:text;background-clip:text;color:transparent}
+.stat .lbl{color:var(--muted);font-size:.75rem;margin-top:2px}
+.progressbar{height:8px;background:var(--surface2);border-radius:99px;overflow:hidden;margin:10px 0}
+.progressbar>div{height:100%;background:var(--grad2);transition:width .4s}
+
+/* ===== TEXT ===== */
+h1,h2,h3{margin:0 0 6px}
+p,li{line-height:1.75;font-size:.95rem}
+.muted{color:var(--muted);font-size:.85rem}
+.section-label{font-size:.72rem;color:var(--accent2);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin:16px 0 8px}
+.am{color:var(--accent3);font-size:.88rem;background:var(--surface2);border-radius:10px;padding:10px 12px;margin:6px 0}
+.formula{font-family:Consolas,monospace;background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;padding:12px 14px;margin:8px 0;overflow-x:auto;color:var(--accent2);white-space:pre-wrap}
+.example{background:var(--surface2);border-left:3px solid var(--accent);border-radius:8px;padding:10px 14px;margin:10px 0}
+
+/* ===== BUTTONS ===== */
+.btn{background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:999px;
+  padding:8px 15px;font-size:.82rem;cursor:pointer}
+.btn.primary{background:var(--grad1);color:#fff;border:none;font-weight:700}
+.btn.danger{background:#2a1414;color:var(--danger);border-color:#4a1f1f}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* ===== LESSON LIST / QUIZ ===== */
+.lesson-item{display:flex;align-items:center;gap:10px;padding:12px;border-radius:13px;background:var(--surface);
+  border:1px solid var(--border);margin-bottom:8px;cursor:pointer}
+.lesson-item:hover{border-color:var(--accent)}
+.lesson-item .dot{width:9px;height:9px;border-radius:50%;background:var(--border);flex-shrink:0}
+.lesson-item.done .dot{background:var(--accent2)}
+.opt{display:block;width:100%;text-align:left;background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);padding:11px 13px;border-radius:11px;margin:6px 0;cursor:pointer}
+.opt.correct{border-color:var(--accent2);background:rgba(52,214,176,.12);color:var(--accent2)}
+.opt.wrong{border-color:var(--danger);background:rgba(255,107,107,.1);color:var(--danger)}
+.timer{font-family:Consolas,monospace;font-weight:700;color:var(--warn)}
+
+/* ===== TOOLS ===== */
+.toolgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.calc input, .toolcard input{width:100%;padding:10px;border-radius:9px;border:1px solid var(--border);
+  background:var(--surface2);color:var(--text);margin-bottom:8px;font-size:1rem}
+.calc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.calc-grid button{padding:13px 0;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--text)}
+.calc-grid button.op{background:rgba(139,92,246,.15);color:var(--accent)}
+.result{margin-top:8px;font-weight:700;color:var(--accent2)}
+
+/* ===== TOAST / LOADER ===== */
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface);
+  border:1px solid var(--border);color:var(--text);padding:10px 18px;border-radius:11px;opacity:0;
+  transition:.25s;z-index:200;font-size:.85rem}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#loader{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:14px;transition:opacity .4s}
+.spinner{width:46px;height:46px;border-radius:50%;border:4px solid var(--border);border-top-color:var(--accent);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+footer{text-align:center;color:var(--muted);font-size:.75rem;padding:24px 12px;border-top:1px solid var(--border)}
+
+@media(max-width:820px){
+  .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:90;transform:translateX(-100%);transition:.25s;width:76%;max-width:280px}
+  .sidebar.open{transform:translateX(0);box-shadow:10px 0 40px rgba(0,0,0,.5)}
+  .navtoggle{display:flex}
+  .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:85}
+  .overlay.show{display:block}
+}
+</style>
+</head>
+<body>
+<div id="loader"><div class="spinner"></div><div class="muted">Loading Keabzend Math…</div></div>
+
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><div class="logo">📐</div><div><b>Keabzend</b><small>MATH · Grade 10</small></div></div>
+    <div class="navitem active" data-view="dashboard"><span class="ic">🏠</span> Dashboard</div>
+    <div class="navitem" data-view="lessons"><span class="ic">📘</span> Lessons</div>
+    <div class="navitem" data-view="quiz"><span class="ic">🎯</span> Quiz</div>
+    <div class="navitem" data-view="tools"><span class="ic">🧮</span> Tools</div>
+    <div class="navitem" data-view="formulas"><span class="ic">📎</span> Formulas</div>
+    <div class="navitem" data-view="notes"><span class="ic">📝</span> My Notes</div>
+    <div class="navitem" data-view="about"><span class="ic">ℹ️</span> About</div>
+  </aside>
+  <div class="overlay" id="overlay"></div>
+
+  <main class="main">
+    <div class="topbar">
+      <button class="iconbtn navtoggle" id="navToggle">☰</button>
+      <h2 id="viewTitle">Dashboard</h2>
+      <button class="iconbtn" id="themeBtn" title="Toggle theme">🌙</button>
+      <button class="iconbtn" id="langBtn" title="Toggle Amharic notes">AM</button>
+    </div>
+    <div id="viewBody"></div>
+    <footer>Made with passion by <b style="color:var(--accent)">Keabzend</b> · App Maker: Keabzend<br>Keabzend Math © 2026</footer>
+  </main>
+</div>
+<div id="toast"></div>
+
+<script>
+/* ====================== DATA ====================== */
+const topics = [
+{id:'sets',name:'Sets',level:'Beginner',sub:'Operations, Venn diagrams',
+am:'ስብስብ ማለት የተለዩ ነገሮች ስብስብ ነው። Union ማለት የሁለቱም ድምር፣ Intersection ማለት የጋራ ክፍል ነው።',
+explain:`<p>A <b>set</b> is a well-defined collection of distinct objects, e.g. A = {1,2,3,4}.</p>
+<ul><li><b>Union (A∪B):</b> all elements in A or B or both</li>
+<li><b>Intersection (A∩B):</b> elements common to both</li>
+<li><b>Difference (A−B):</b> in A but not B</li>
+<li><b>Complement (A′):</b> in the universal set but not A</li></ul>`,
+formula:`n(A∪B) = n(A) + n(B) − n(A∩B)`,
+example:`A={1,2,3,4,5}, B={4,5,6,7}<br>A∩B={4,5}, A∪B={1,2,3,4,5,6,7}`,
+tip:'Draw a Venn diagram first — it makes union/intersection questions much faster to solve in exams.',
+app:'Sets are used in database queries (SQL), grouping customers by shared interests, and organizing survey results.',
+quiz:[{q:'If A={2,4,6}, B={4,6,8}, what is A∩B?',opts:['{4,6}','{2,4,6,8}','{2,8}','{}'],a:0,exp:'Only 4 and 6 appear in both sets.'},
+{q:'If n(A)=10, n(B)=7, n(A∩B)=3, what is n(A∪B)?',opts:['17','14','13','20'],a:1,exp:'10+7−3 = 14.'},
+{q:'True or False: A∪B always equals A∩B.',opts:['True','False'],a:1,exp:'Only equal when A=B.'}]},
+
+{id:'functions',name:'Relations & Functions',level:'Beginner',sub:'Domain, range, mapping',
+am:'ፋንክሽን ማለት እያንዳንዱ ግቤት (x) ከአንድ ውጤት (y) ጋር ብቻ የሚገናኝበት ግንኙነት ነው።',
+explain:`<p>A <b>relation</b> is a set of ordered pairs (x,y). A <b>function</b> maps each x to exactly one y.</p>
+<p><b>Domain</b> = all x values, <b>Range</b> = all resulting y values.</p>`,
+formula:`f(x) = 2x + 3  →  f(5) = 13`,
+example:`f(x)=x²−1 → f(3)=8, f(0)=−1`,
+tip:'Use the vertical line test on a graph: if a vertical line crosses the curve more than once, it is NOT a function.',
+app:'Functions model real relationships: taxi fare vs distance, phone bill vs minutes used, or temperature vs time of day.',
+quiz:[{q:'If f(x)=3x−2, what is f(4)?',opts:['10','14','12','9'],a:0,exp:'3(4)−2=10.'},
+{q:'Key property of a function:',opts:['Each x→many y','Each x→exactly one y','x=y always','No rule'],a:1,exp:'Definition of a function.'},
+{q:'True or False: all relations are functions.',opts:['True','False'],a:1,exp:'Only special relations are functions.'}]},
+
+{id:'polynomials',name:'Polynomials',level:'Intermediate',sub:'Operations & factoring',
+am:'ፖሊኖሚያል ቁጥሮችንና ተለዋዋጮችን የያዘ አገላለጽ ነው፤ factoring ማለት ወደ ትናንሽ ክፍል መክፈል ነው።',
+explain:`<p>A <b>polynomial</b> combines numbers and variables via +,−,×, e.g. 3x²+2x−5. The <b>degree</b> is the highest exponent.</p>`,
+formula:`a²−b² = (a+b)(a−b)\na²+2ab+b² = (a+b)²`,
+example:`x²−9 = (x+3)(x−3)`,
+tip:'Always check for a common factor first before applying special formulas.',
+app:'Polynomials model profit curves in business, trajectory of a thrown ball, and areas/volumes of shapes with unknown dimensions.',
+quiz:[{q:'Factor x²−16:',opts:['(x+4)(x−4)','(x−8)(x+2)','(x+16)(x−1)','(x+4)²'],a:0,exp:'Difference of squares.'},
+{q:'Degree of 3x²+2x−5?',opts:['1','2','3','5'],a:1,exp:'Highest power is 2.'},
+{q:'True or False: every polynomial can be factored over real numbers.',opts:['True','False'],a:1,exp:'Some are irreducible.'}]},
+
+{id:'exponents',name:'Exponents & Radicals',level:'Intermediate',sub:'Laws of exponents',
+am:'Exponent ቁጥር ራሱን ስንት ጊዜ እንደሚባዛ ያሳያል፤ radical ደግሞ ተቃራኒው ነው።',
+explain:`<p>aⁿ means a multiplied by itself n times. √a is the inverse: the number which squared gives a.</p>`,
+formula:`aᵐ×aⁿ=aᵐ⁺ⁿ\naᵐ÷aⁿ=aᵐ⁻ⁿ\n(aᵐ)ⁿ=aᵐⁿ\na⁻ⁿ=1/aⁿ`,
+example:`2³×2²=2⁵=32, √64=8`,
+tip:'Simplify radicals by factoring out the largest perfect square first.',
+app:'Exponents describe population growth, compound interest in banking, and radioactive decay in science.',
+quiz:[{q:'2⁴×2³=?',opts:['2⁷','2¹²','2¹','128'],a:0,exp:'Add exponents: 4+3=7.'},
+{q:'√81=?',opts:['8','9','7','18'],a:1,exp:'9×9=81.'},
+{q:'True or False: a⁰=1 for all a≠0.',opts:['True','False'],a:0,exp:'Standard exponent rule.'}]},
+
+{id:'logarithms',name:'Logarithms',level:'Advanced',sub:'Log laws',
+am:'ሎጋሪዝም የexponent ተቃራኒ ነው፤ log_b(x)=y ማለት bʸ=x ማለት ነው።',
+explain:`<p>log_b(x)=y means bʸ=x. For example log₂(8)=3 since 2³=8.</p>`,
+formula:`log(mn)=log(m)+log(n)\nlog(m/n)=log(m)−log(n)\nlog(mⁿ)=n·log(m)`,
+example:`log₂(8)=3, log(100)=2`,
+tip:'Convert log equations to exponential form when stuck — it often reveals the answer directly.',
+app:'Logarithms measure earthquake strength (Richter scale), sound loudness (decibels), and pH levels in chemistry.',
+quiz:[{q:'log₂(16)=?',opts:['3','4','8','2'],a:1,exp:'2⁴=16.'},
+{q:'log(a)+log(b)=?',opts:['log(a−b)','log(a+b)','log(ab)','log(a/b)'],a:2,exp:'Product rule.'},
+{q:'True or False: log_b(1)=0 always.',opts:['True','False'],a:0,exp:'b⁰=1 for any base.'}]},
+
+{id:'quadratics',name:'Quadratic Equations',level:'Advanced',sub:'Solving ax²+bx+c=0',
+am:'ኳድራቲክ እኩልታ ax²+bx+c=0 ቅርጽ ያለው ነው፤ በ factoring ወይም formula ይፈታል።',
+explain:`<p>Solve using factoring, completing the square, or the quadratic formula.</p>`,
+formula:`x = (−b ± √(b²−4ac)) / 2a`,
+example:`x²−5x+6=0 → (x−2)(x−3)=0 → x=2 or 3`,
+tip:'Compute the discriminant (b²−4ac) first — it tells you how many real solutions exist before you solve.',
+app:'Quadratics model the path of a thrown ball, satellite dish shapes, and maximizing area/profit in business problems.',
+quiz:[{q:'Factor x²−x−6=0:',opts:['(x−3)(x+2)','(x−6)(x+1)','(x−2)(x+3)','(x−1)(x+6)'],a:0,exp:'−3×2=−6, −3+2=−1.'},
+{q:'b²−4ac is called the:',opts:['Coefficient','Discriminant','Root','Factor'],a:1,exp:'Standard term.'},
+{q:'True or False: a negative discriminant means no real roots.',opts:['True','False'],a:0,exp:'Correct — roots become complex.'}]},
+
+{id:'trig',name:'Trigonometry',level:'Advanced',sub:'sin, cos, tan',
+am:'ትሪጎኖሜትሪ የትሪያንግል ማዕዘንና ጎን ግንኙነት ያጠናል።',
+explain:`<p>For right triangles: sin, cos, tan relate angles to side ratios.</p>`,
+formula:`sin(θ)=Opp/Hyp\ncos(θ)=Adj/Hyp\ntan(θ)=Opp/Adj\nsin²θ+cos²θ=1`,
+example:`sin(30°)=0.5, sin(45°)=cos(45°)=0.707`,
+tip:'Memorize the 30-45-60 triangle ratios — they appear constantly on exams.',
+app:'Trigonometry is used in construction (roof angles), navigation (GPS), and measuring heights of buildings without climbing them.',
+quiz:[{q:'sin(90°)=?',opts:['0','1','0.5','undefined'],a:1,exp:'Maximum value of sine.'},
+{q:'sin²θ+cos²θ always =',opts:['0','θ','1','2'],a:2,exp:'Pythagorean identity.'},
+{q:'True or False: tan(θ)=sin(θ)/cos(θ).',opts:['True','False'],a:0,exp:'Correct identity.'}]},
+
+{id:'coord',name:'Coordinate Geometry',level:'Intermediate',sub:'Distance, midpoint, slope',
+am:'Coordinate geometry ርቀት፣ መካከለኛ ነጥብ እና slope ለማስላት ይጠቅማል።',
+explain:`<p>Used to calculate distance, midpoint, and slope between two points.</p>`,
+formula:`Distance=√((x2−x1)²+(y2−y1)²)\nMidpoint=((x1+x2)/2,(y1+y2)/2)\nSlope=(y2−y1)/(x2−x1)`,
+example:`A(1,2),B(4,6): Distance=5, Slope=4/3`,
+tip:'If slope is undefined, the line is vertical; if slope=0, the line is horizontal.',
+app:'Coordinate geometry is used in GPS mapping, computer graphics/game design, and city street grid planning.',
+quiz:[{q:'Distance between A(0,0) and B(3,4)?',opts:['5','7','4','3'],a:0,exp:'√(9+16)=5.'},
+{q:'Slope represents:',opts:['Length','Steepness/direction','Position','Area'],a:1,exp:'Rate of change.'},
+{q:'True or False: parallel lines have equal slopes.',opts:['True','False'],a:0,exp:'Correct property.'}]},
+
+{id:'stats',name:'Statistics',level:'Intermediate',sub:'Mean, median, mode',
+am:'Mean ድምር ÷ ብዛት ነው፤ Median መካከለኛ ዋጋ፤ Mode በብዛት የሚደጋገም ዋጋ ነው።',
+explain:`<p>Mean = sum÷count. Median = middle value when ordered. Mode = most frequent value.</p>`,
+formula:`Mean = Σx / n`,
+example:`Data: 3,4,5,6,8 → Median=5, Mean=5.2`,
+tip:'Always sort the data first before finding the median — a common exam mistake is skipping this.',
+app:'Statistics is used to analyze exam results, track business sales trends, and summarize population data in research.',
+quiz:[{q:'Data: 2,4,4,6,8 → mode?',opts:['2','4','6','8'],a:1,exp:'4 repeats most.'},
+{q:'How to find mean?',opts:['Sum÷count','Sum×count','Max−min','Middle value'],a:0,exp:'Definition.'},
+{q:'True or False: a data set can have more than one mode.',opts:['True','False'],a:0,exp:'Bimodal/multimodal sets exist.'}]},
+
+{id:'prob',name:'Probability',level:'Advanced',sub:'Basic probability rules',
+am:'Probability የክስተት መከሰት እድል ከ0 እስከ 1 ይለካል።',
+explain:`<p>Probability measures how likely an event is, from 0 (impossible) to 1 (certain).</p>`,
+formula:`P(Event) = favorable outcomes / total outcomes`,
+example:`P(rolling a 4 on a die) = 1/6`,
+tip:'List all possible outcomes systematically (a sample space) before calculating probability.',
+app:'Probability is used in weather forecasting, insurance risk pricing, and games of chance like lottery and dice games.',
+quiz:[{q:'P(heads) on a coin flip?',opts:['1/4','1/2','1','0'],a:1,exp:'1 favorable of 2 outcomes.'},
+{q:'Probability values range:',opts:['0 to 1','−1 to 1','1 to 100','0 to ∞'],a:0,exp:'Standard range.'},
+{q:'True or False: P(A)+P(not A)=1.',opts:['True','False'],a:0,exp:'Complement rule.'}]}
+];
+
+/* ====================== STATE / STORAGE ====================== */
+const LS = {
+  get(k,d){ try{ return JSON.parse(localStorage.getItem(k)) ?? d; }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+let progress = LS.get('kb_progress', {});
+let bookmarks = LS.get('kb_bookmarks', {});
+let notes = LS.get('kb_notes', []);
+let theme = LS.get('kb_theme', 'dark');
+let showAm = LS.get('kb_showam', true);
+let streakData = LS.get('kb_streak', {count:0,last:null});
+let activity = LS.get('kb_activity', []);
+let currentTopic = topics[0].id;
+
+function toast(msg){
+  const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+  clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show'),2200);
+}
+function logActivity(text){
+  activity.unshift({text, t:new Date().toLocaleString()});
+  activity = activity.slice(0,8); LS.set('kb_activity', activity);
+}
+function updateStreak(){
+  const today = new Date().toDateString();
+  if(streakData.last !== today){
+    const yesterday = new Date(Date.now()-86400000).toDateString();
+    streakData.count = (streakData.last === yesterday) ? streakData.count+1 : 1;
+    streakData.last = today; LS.set('kb_streak', streakData);
+  }
+}
+updateStreak();
+
+/* ====================== THEME ====================== */
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme', theme);
+  document.getElementById('themeBtn').textContent = theme==='dark' ? '🌙' : '☀️';
+}
+document.getElementById('themeBtn').onclick = ()=>{
+  theme = theme==='dark' ? 'light' : 'dark'; LS.set('kb_theme', theme); applyTheme();
+};
+document.getElementById('langBtn').onclick = ()=>{
+  showAm = !showAm; LS.set('kb_showam', showAm);
+  toast(showAm ? 'Amharic notes: ON' : 'Amharic notes: OFF');
+  if(currentView==='lessons') renderLessonDetail(currentTopic);
+};
+applyTheme();
+
+/* ====================== NAV ====================== */
+const sidebar=document.getElementById('sidebar'), overlay=document.getElementById('overlay');
+document.getElementById('navToggle').onclick=()=>{sidebar.classList.toggle('open');overlay.classList.toggle('show');};
+overlay.onclick=()=>{sidebar.classList.remove('open');overlay.classList.remove('show');};
+
+let currentView = 'dashboard';
+document.querySelectorAll('.navitem').forEach(item=>{
+  item.onclick=()=>{
+    document.querySelectorAll('.navitem').forEach(i=>i.classList.remove('active'));
+    item.classList.add('active');
+    currentView = item.dataset.view;
+    document.getElementById('viewTitle').textContent = item.textContent.trim();
+    sidebar.classList.remove('open'); overlay.classList.remove('show');
+    render();
+  };
+});
+
+/* ====================== RENDER ROUTER ====================== */
+function render(){
+  const body = document.getElementById('viewBody');
+  if(currentView==='dashboard') body.innerHTML = dashboardView();
+  else if(currentView==='lessons'){ body.innerHTML = lessonsListView(); filterLessons(''); }
+  else if(currentView==='quiz') body.innerHTML = quizPickerView();
+  else if(currentView==='tools') body.innerHTML = toolsView();
+  else if(currentView==='formulas'){ body.innerHTML = formulasView(); renderFormulas(''); }
+  else if(currentView==='notes') body.innerHTML = notesView();
+  else if(currentView==='about') body.innerHTML = aboutView();
+  if(currentView==='tools') initToolHandlers();
+  if(currentView==='notes') initNotesHandlers();
+}
+
+/* ====================== DASHBOARD ====================== */
+function dashboardView(){
+  const done = Object.values(progress).filter(Boolean).length;
+  const pct = Math.round(done/topics.length*100);
+  return `
+  <div class="glasscard" style="margin-bottom:16px">
+    <h1>Welcome back! 👋</h1>
+    <p class="muted">Keep going — consistency beats cramming.</p>
+    <div class="progressbar"><div style="width:${pct}%"></div></div>
+    <div class="muted">${pct}% of Grade 10 Math curriculum completed</div>
+  </div>
+  <div class="grid">
+    <div class="stat"><div class="num">${pct}%</div><div class="lbl">Progress</div></div>
+    <div class="stat"><div class="num">${done}</div><div class="lbl">Lessons Completed</div></div>
+    <div class="stat"><div class="num">${topics.length}</div><div class="lbl">Total Topics</div></div>
+    <div class="stat"><div class="num">🔥 ${streakData.count}</div><div class="lbl">Day Streak</div></div>
+  </div>
+  <div class="card">
+    <div class="section-label">Recent Activity</div>
+    ${activity.length ? activity.map(a=>`<p class="muted">• ${a.text} <span style="opacity:.6">(${a.t})</span></p>`).join('') : '<p class="muted">No activity yet — start a lesson!</p>'}
+  </div>`;
+}
+
+/* ====================== LESSONS ====================== */
+function lessonsListView(){
+  return `
+  <input id="lessonSearch" placeholder="🔍 Search lessons..." style="width:100%;padding:11px;border-radius:11px;border:1px solid var(--border);background:var(--surface);color:var(--text);margin-bottom:14px" oninput="filterLessons(this.value)">
+  <div id="lessonList"></div>
+  <div id="lessonDetail"></div>`;
+  }
+function filterLessons(q){
+  q=(q||'').toLowerCase();
+  const list=document.getElementById('lessonList');
+  list.innerHTML = topics.filter(t=>t.name.toLowerCase().includes(q)).map(t=>`
+    <div class="lesson-item ${progress[t.id]?'done':''}" onclick="renderLessonDetail('${t.id}')">
+      <span class="dot"></span>
+      <div style="flex:1"><b>${t.name}</b> <span class="muted">· ${t.level}</span><div class="muted">${t.sub}</div></div>
+      <span>${bookmarks[t.id]?'🔖':''}</span>
+    </div>`).join('');
+}
+function renderLessonDetail(id){
+  currentTopic = id;
+  const t = topics.find(x=>x.id===id);
+  const idx = topics.indexOf(t);
+  document.getElementById('lessonDetail').innerHTML = `
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <span class="section-label" style="margin:0">${t.level}</span>
+      <div class="row">
+        <button class="btn" onclick="toggleBookmark('${t.id}')">${bookmarks[t.id]?'🔖 Bookmarked':'🔖 Bookmark'}</button>
+      </div>
+    </div>
+    <h1>${t.name}</h1>
+    <p class="muted">${t.sub}</p>
+    ${showAm ? `<div class="am">🇪🇹 ${t.am}</div>` : ''}
+    <div class="section-label">📖 Explanation</div>
+    ${t.explain}
+    <div class="section-label">🧮 Formula</div>
+    <div class="formula">${t.formula}</div>
+    <div class="section-label">✏️ Worked Example</div>
+    <div class="example">${t.example}</div>
+    <div class="section-label">🌍 Real-Life Application</div>
+    <p class="muted">${t.app}</p>
+    <div class="section-label">💡 Exam Tip</div>
+    <p class="muted">${t.tip}</p>
+    <div class="row" style="margin-top:14px">
+      <button class="btn ${progress[t.id]?'primary':''}" onclick="toggleDone('${t.id}')">✅ ${progress[t.id]?'Completed':'Mark Completed'}</button>
+      <button class="btn" onclick="goQuiz('${t.id}')">🎯 Take Quiz</button>
+      ${idx>0?`<button class="btn" onclick="renderLessonDetail('${topics[idx-1].id}')">⬅ Prev</button>`:''}
+      ${idx<topics.length-1?`<button class="btn" onclick="renderLessonDetail('${topics[idx+1].id}')">Next ➡</button>`:''}
+    </div>
+  </div>`;
+  document.getElementById('lessonDetail').scrollIntoView({behavior:'smooth'});
+}
+function toggleDone(id){
+  progress[id]=!progress[id]; LS.set('kb_progress',progress);
+  if(progress[id]){ logActivity(`Completed "${topics.find(t=>t.id===id).name}"`); toast('Lesson marked complete ✅'); }
+  filterLessons(document.getElementById('lessonSearch')?.value||'');
+  renderLessonDetail(id);
+}
+function toggleBookmark(id){
+  bookmarks[id]=!bookmarks[id]; LS.set('kb_bookmarks',bookmarks);
+  filterLessons(''); renderLessonDetail(id);
+}
+function goQuiz(id){
+  document.querySelector('.navitem[data-view="quiz"]').click();
+  startQuiz(id);
+}
+
+/* ====================== QUIZ ====================== */
+function quizPickerView(){
+  return `<div class="card"><div class="section-label">Choose a topic</div>
+  <div class="row" style="flex-wrap:wrap">
+  ${topics.map(t=>`<button class="btn" onclick="startQuiz('${t.id}')">${t.name}</button>`).join('')}
+  </div></div><div id="quizArea"></div>`;
+}
+let quizState={};
+function startQuiz(id){
+  const t = topics.find(x=>x.id===id);
+  const qs = [...t.quiz].sort(()=>Math.random()-0.5);
+  quizState = {id, qs, idx:0, score:0, time:60, timerId:null, answered:false};
+  renderQuizQ();
+  quizState.timerId = setInterval(()=>{
+    quizState.time--;
+    const el=document.getElementById('quizTimer');
+    if(el) el.textContent = quizState.time+'s';
+    if(quizState.time<=0){ clearInterval(quizState.timerId); finishQuiz(); }
+  },1000);
+}
+function renderQuizQ(){
+  const area=document.getElementById('quizArea');
+  const q = quizState.qs[quizState.idx];
+  area.innerHTML = `<div class="card">
+    <div class="row" style="justify-content:space-between">
+      <span class="muted">Question ${quizState.idx+1}/${quizState.qs.length}</span>
+      <span class="timer" id="quizTimer">${quizState.time}s</span>
+    </div>
+    <h3 style="margin-top:10px">${q.q}</h3>
+    ${q.opts.map((o,oi)=>`<button class="opt" id="qo${oi}" onclick="quizAnswer(${oi})">${o}</button>`).join('')}
+    <p id="quizExp" class="muted" style="display:none;margin-top:8px"></p>
+    <div class="row" style="margin-top:10px"><button class="btn primary" id="quizNextBtn" style="display:none" onclick="quizNext()">Next ➡</button></div>
+  </div>`;
+}
+function quizAnswer(oi){
+  if(quizState.answered) return;
+  quizState.answered = true;
+  const q = quizState.qs[quizState.idx];
+  q.opts.forEach((o,i)=>{
+    const el=document.getElementById('qo'+i); el.style.pointerEvents='none';
+    if(i===q.a) el.classList.add('correct'); else if(i===oi) el.classList.add('wrong');
+  });
+  if(oi===q.a) quizState.score++;
+  const exp=document.getElementById('quizExp'); exp.style.display='block'; exp.textContent='💡 '+q.exp;
+  document.getElementById('quizNextBtn').style.display='inline-block';
+}
+function quizNext(){
+  quizState.answered=false;
+  if(quizState.idx < quizState.qs.length-1){ quizState.idx++; renderQuizQ(); }
+  else { clearInterval(quizState.timerId); finishQuiz(); }
+}
+function finishQuiz(){
+  const area=document.getElementById('quizArea');
+  const pct = Math.round(quizState.score/quizState.qs.length*100);
+  const t = topics.find(x=>x.id===quizState.id);
+  logActivity(`Scored ${pct}% on "${t.name}" quiz`);
+  area.innerHTML = `<div class="card" style="text-align:center">
+    <h1>${pct}%</h1><p class="muted">You scored ${quizState.score} out of ${quizState.qs.length}</p>
+    <div class="row" style="justify-content:center;margin-top:10px">
+      <button class="btn primary" onclick="startQuiz('${quizState.id}')">🔁 Retry</button>
+      <button class="btn" onclick="render()">⬅ Back to Topics</button>
+    </div></div>`;
+}
+
+/* ====================== TOOLS ====================== */
+function toolsView(){
+  return `<div class="toolgrid">
+    <div class="card calc">
+      <div class="section-label">🧮 Scientific-ish Calculator</div>
+      <input id="calcDisplay" disabled>
+      <div class="calc-grid">
+        <button onclick="calcAppend('7')">7</button><button onclick="calcAppend('8')">8</button><button onclick="calcAppend('9')">9</button><button class="op" onclick="calcAppend('/')">÷</button>
+        <button onclick="calcAppend('4')">4</button><button onclick="calcAppend('5')">5</button><button onclick="calcAppend('6')">6</button><button class="op" onclick="calcAppend('*')">×</button>
+        <button onclick="calcAppend('1')">1</button><button onclick="calcAppend('2')">2</button><button onclick="calcAppend('3')">3</button><button class="op" onclick="calcAppend('-')">−</button>
+        <button onclick="calcAppend('0')">0</button><button onclick="calcAppend('.')">.</button><button class="op" onclick="calcEq()">=</button><button class="op" onclick="calcAppend('+')">+</button>
+        <button onclick="calcAppend('Math.sqrt(')">√(</button><button onclick="calcAppend('**2')">x²</button><button onclick="calcAppend('(')">(</button><button onclick="calcAppend(')')">)</button>
+        <button onclick="calcClear()" style="grid-column:span 4;background:#2a1414;color:var(--danger)">C Clear</button>
+      </div>
+    </div>
+    <div class="toolcard card">
+      <div class="section-label">% Percentage Calculator</div>
+      <input id="pctA" type="number" placeholder="Value (e.g. 40)">
+      <input id="pctB" type="number" placeholder="Percent (e.g. 25)">
+      <button class="btn primary" onclick="calcPct()">Calculate X% of Value</button>
+      <div class="result" id="pctResult"></div>
+    </div>
+    <div class="toolcard card">
+      <div class="section-label">📐 Trigonometry (degrees)</div>
+      <input id="trigDeg" type="number" placeholder="Angle in degrees">
+      <button class="btn primary" onclick="calcTrig()">Compute sin, cos, tan</button>
+      <div class="result" id="trigResult"></div>
+    </div>
+    <div class="toolcard card">
+      <div class="section-label">➗ Quadratic Solver (ax²+bx+c=0)</div>
+      <input id="qa" type="number" placeholder="a"><input id="qb" type="number" placeholder="b"><input id="qc" type="number" placeholder="c">
+      <button class="btn primary" onclick="solveQuad()">Solve for x</button>
+      <div class="result" id="quadResult"></div>
+    </div>
+  </div>`;
+}
+function initToolHandlers(){}
+function calcAppend(v){ document.getElementById('calcDisplay').value += v; }
+function calcClear(){ document.getElementById('calcDisplay').value=''; }
+function calcEq(){
+  const d=document.getElementById('calcDisplay');
+  try{ d.value = Function('"use strict";return ('+d.value+')')(); }catch(e){ d.value='Error'; }
+}
+function calcPct(){
+  const a=parseFloat(document.getElementById('pctA').value), b=parseFloat(document.getElementById('pctB').value);
+  document.getElementById('pctResult').textContent = (isNaN(a)||isNaN(b)) ? 'Enter both values' : `${b}% of ${a} = ${(a*b/100).toFixed(2)}`;
+}
+function calcTrig(){
+  const d=parseFloat(document.getElementById('trigDeg').value);
+  if(isNaN(d)){ document.getElementById('trigResult').textContent='Enter an angle'; return; }
+  const r = d*Math.PI/180;
+  document.getElementById('trigResult').innerHTML = `sin=${Math.sin(r).toFixed(4)}<br>cos=${Math.cos(r).toFixed(4)}<br>tan=${Math.tan(r).toFixed(4)}`;
+}
+function solveQuad(){
+  const a=parseFloat(document.getElementById('qa').value), b=parseFloat(document.getElementById('qb').value), c=parseFloat(document.getElementById('qc').value);
+  const el=document.getElementById('quadResult');
+  if(isNaN(a)||isNaN(b)||isNaN(c)||a===0){ el.textContent='Enter valid a (≠0), b, c'; return; }
+  const disc = b*b-4*a*c;
+  if(disc<0){ el.textContent='No real roots (discriminant < 0)'; return; }
+  const x1=(-b+Math.sqrt(disc))/(2*a), x2=(-b-Math.sqrt(disc))/(2*a);
+  el.textContent = disc===0 ? `x = ${x1.toFixed(3)} (one root)` : `x₁ = ${x1.toFixed(3)}, x₂ = ${x2.toFixed(3)}`;
+}
+
+/* ====================== FORMULAS ====================== */
+function formulasView(){
+  return `<input id="formSearch" placeholder="🔍 Search formulas..." style="width:100%;padding:11px;border-radius:11px;border:1px solid var(--border);background:var(--surface);color:var(--text);margin-bottom:14px" oninput="renderFormulas(this.value)">
+  <div id="formList"></div>`;
+}
+function renderFormulas(q){
+  q=(q||'').toLowerCase();
+  const list=document.getElementById('formList'); if(!list) return;
+  list.innerHTML = topics.filter(t=>t.name.toLowerCase().includes(q)||t.formula.toLowerCase().includes(q)).map(t=>`
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <b style="color:var(--accent)">${t.name}</b>
+        <button class="btn" onclick="copyFormula(this,'${t.formula.replace(/\n/g,'\\n')}')">📋 Copy</button>
+      </div>
+      <div class="formula">${t.formula}</div>
+      <p class="muted">${t.example}</p>
+    </div>`).join('');
+}
+function copyFormula(btn, text){
+  const clean = text.replace(/\\n/g,'\n');
+  navigator.clipboard?.writeText(clean).then(()=>toast('Formula copied!')).catch(()=>toast('Copy failed'));
+}
+
+/* ====================== NOTES ====================== */
+function notesView(){
+  return `<div class="card">
+    <div class="section-label">Add a note</div>
+    <input id="noteInput" placeholder="Write something to remember...">
+    <button class="btn primary" onclick="addNote()">➕ Add Note</button>
+  </div>
+  <div class="row" style="margin-bottom:10px">
+    <button class="btn" onclick="exportNotes()">⬇️ Export Notes (.txt)</button>
+  </div>
+  <div id="notesList"></div>`;
+}
+function initNotesHandlers(){ renderNotes(); }
+function renderNotes(){
+  const list=document.getElementById('notesList'); if(!list) return;
+  list.innerHTML = notes.length ? notes.map((n,i)=>`
+    <div class="card row" style="justify-content:space-between">
+      <span>${n}</span><button class="btn danger" onclick="deleteNote(${i})">🗑️</button>
+    </div>`).join('') : '<p class="muted">No notes yet.</p>';
+}
+function addNote(){
+  const input=document.getElementById('noteInput');
+  if(!input.value.trim()) return;
+  notes.push(input.value.trim()); LS.set('kb_notes',notes); input.value='';
+  renderNotes(); toast('Note saved');
+}
+function deleteNote(i){ notes.splice(i,1); LS.set('kb_notes',notes); renderNotes(); }
+function exportNotes(){
+  if(!notes.length){ toast('No notes to export'); return; }
+  const blob = new Blob([notes.join('\n\n')], {type:'text/plain'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='keabzend-math-notes.txt'; a.click();
+}
+
+/* ====================== ABOUT ====================== */
+function aboutView(){
+  return `<div class="glasscard" style="text-align:center">
+    <div style="font-size:2.4rem">📐</div>
+    <h1>Keabzend Math</h1>
+    <p class="muted">Grade 10 Mathematics Learning App</p>
+    <p style="margin-top:14px"><b>MADE WITH PASSION BY KEABZEND</b></p>
+    <p class="muted">App Maker: Keabzend</p>
+    <p class="muted">Keabzend Math © 2026</p>
+  </div>
+  <div class="card">
+    <div class="section-label">Data & Privacy</div>
+    <p class="muted">All progress, notes, and bookmarks are stored only on this device (localStorage). Nothing is uploaded anywhere.</p>
+    <button class="btn danger" onclick="resetProgress()">⚠️ Reset All Progress</button>
+  </div>`;
+}
+function resetProgress(){
+  if(!confirm('This will erase all progress, bookmarks, notes and streak. Continue?')) return;
+  progress={}; bookmarks={}; notes=[]; streakData={count:0,last:null}; activity=[];
+  LS.set('kb_progress',progress); LS.set('kb_bookmarks',bookmarks); LS.set('kb_notes',notes);
+  LS.set('kb_streak',streakData); LS.set('kb_activity',activity);
+  toast('Progress reset'); document.querySelector('.navitem[data-view="dashboard"]').click();
+}
+
+/* ====================== INIT ====================== */
+window.addEventListener('load', ()=>{
+  render();
+  setTimeout(()=>{
+    const l=document.getElementById('loader'); l.style.opacity='0';
+    setTimeout(()=>l.remove(),400);
+  }, 500);
+});
+</script>
+</body>
+</html>
